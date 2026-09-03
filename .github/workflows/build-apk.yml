@@ -39,7 +39,7 @@ jobs:
 
     - name: Build Debug APK
       working-directory: ./client
-      run: gradle assembleDebug --no-daemon --stacktrace 2>&1 | tail -150
+      run: gradle assembleDebug --no-daemon --stacktrace
 
     - name: Upload APK Artifact
       if: success()
