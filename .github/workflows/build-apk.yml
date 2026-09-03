@@ -31,35 +31,17 @@ jobs:
       working-directory: ./client
       run: echo "sdk.dir=${ANDROID_HOME}" > local.properties
 
-    - name: Cache Gradle packages
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('client/**/*.gradle*', 'client/**/gradle-wrapper.properties') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
-
-    - name: Setup Gradle
-      uses: gradle/gradle-build-action@v2
-      with:
-        gradle-version: 8.7
-        build-root-directory: client
+    - name: Install Gradle
+      run: |
+        wget -q https://services.gradle.org/distributions/gradle-8.7-bin.zip -O gradle.zip
+        unzip -q gradle.zip -d /opt/
+        echo "/opt/gradle-8.7/bin" >> $PATH
+        gradle --version
+      shell: bash
 
     - name: Build Debug APK
       working-directory: ./client
-      run: gradle assembleDebug --no-daemon --stacktrace
-
-    - name: Check APK file
-      working-directory: ./client
-      run: |
-        echo "=== APK files ==="
-        find . -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
-        echo ""
-        echo "=== APK directory ==="
-        ls -la app/build/outputs/apk/debug/ 2>/dev/null || echo "Directory not found"
-      shell: bash
+      run: gradle assembleDebug --no-daemon --stacktrace --continue 2>&1 | tail -100
 
     - name: Upload APK Artifact
       if: success()
