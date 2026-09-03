@@ -1,0 +1,19 @@
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build outputs
+server/**/bin/
+server/**/obj/
+client/app/build/
+client/client/.gradle/
+
+# Logs
+*.log
