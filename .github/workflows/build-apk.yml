@@ -31,17 +31,12 @@ jobs:
       working-directory: ./client
       run: echo "sdk.dir=${ANDROID_HOME}" > local.properties
 
-    - name: Install Gradle
-      run: |
-        wget -q https://services.gradle.org/distributions/gradle-8.7-bin.zip -O gradle.zip
-        unzip -q gradle.zip -d /opt/
-        echo "/opt/gradle-8.7/bin" >> $PATH
-        gradle --version
-      shell: bash
-
     - name: Build Debug APK
       working-directory: ./client
-      run: gradle assembleDebug --no-daemon --stacktrace --continue 2>&1 | tail -100
+      run: |
+        chmod +x gradlew
+        ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tail -200
+      shell: bash
 
     - name: Upload APK Artifact
       if: success()
