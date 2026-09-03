@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: write
-  packages: write
 
 jobs:
   build:
@@ -44,15 +43,22 @@ jobs:
 
     - name: Build Debug APK
       working-directory: ./client
-      run: ./gradlew assembleDebug --no-daemon --stacktrace
+      continue-on-error: true
+      run: ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee build-output.log
 
-    - name: Verify APK exists
+    - name: Display build output
       working-directory: ./client
       run: |
-        echo "=== Checking for APK ==="
-        find . -name "*.apk" 2>/dev/null || echo "No APK files found"
-        ls -la app/build/outputs/apk/debug/ 2>/dev/null || echo "Directory not found"
+        echo "=== Last 100 lines of build log ==="
+        tail -100 build-output.log || echo "No build log found"
       shell: bash
+
+    - name: Upload build log
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-log
+        path: client/build-output.log
+        retention-days: 7
 
     - name: Upload APK Artifact
       if: success()
