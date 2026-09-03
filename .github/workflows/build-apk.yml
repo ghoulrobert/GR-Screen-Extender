@@ -35,7 +35,10 @@ jobs:
       working-directory: ./client
       run: |
         chmod +x gradlew
-        ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tail -200
+        ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee /tmp/build.log
+        echo ""
+        echo "=== LAST 100 LINES ==="
+        tail -100 /tmp/build.log
       shell: bash
 
     - name: Upload APK Artifact
