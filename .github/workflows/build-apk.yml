@@ -47,11 +47,11 @@ jobs:
 
     - name: Download Gradle
       working-directory: ./client
-      run: ./gradlew --version
+      run: bash gradlew --version
 
     - name: Build Debug APK
       working-directory: ./client
-      run: ./gradlew assembleDebug --no-daemon --stacktrace
+      run: bash gradlew assembleDebug --no-daemon --stacktrace
 
     - name: Check APK file
       working-directory: ./client
