@@ -27,46 +27,28 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    - name: Cache Gradle packages
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('client/**/*.gradle*', 'client/**/gradle-wrapper.properties') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
-
-    - name: Grant execute permission for gradlew
-      working-directory: ./client
-      run: chmod +x gradlew
-
     - name: Setup local.properties
       working-directory: ./client
       run: |
         echo "sdk.dir=${ANDROID_HOME}" > local.properties
-        echo "=== local.properties ==="
         cat local.properties
       shell: bash
 
-    - name: Build Debug APK with verbose output
+    - name: Check Gradle
       working-directory: ./client
       run: |
-        ./gradlew assembleDebug --no-daemon --stacktrace --info 2>&1 | tee build.log
-        echo ""
-        echo "=== APK FILES FOUND ==="
-        find . -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
-        echo ""
-        echo "=== APK DIRECTORY ==="
-        ls -la app/build/outputs/apk/debug/ 2>/dev/null || echo "APK directory does not exist"
-        echo ""
-        echo "=== LAST 200 LINES OF BUILD LOG ==="
-        tail -200 build.log || echo "No build log available"
+        chmod +x gradlew
+        ./gradlew --version
       shell: bash
 
-    - name: Upload APK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: GR扩展屏幕-debug.apk
-        path: client/app/build/outputs/apk/debug/app-debug.apk
-        retention-days: 30
+    - name: Run Gradle tasks
+      working-directory: ./client
+      run: |
+        ./gradlew tasks --all 2>&1 | head -50
+      shell: bash
+
+    - name: Try build
+      working-directory: ./client
+      run: |
+        ./gradlew clean assembleDebug --no-daemon 2>&1
+      shell: bash
