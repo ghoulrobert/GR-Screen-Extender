@@ -132,7 +132,7 @@ class NetworkClient private constructor(
     private fun createHeader(type: Byte, payloadLength: Int): ByteArray {
         val header = ByteArray(HEADER_SIZE)
         val buffer = ByteBuffer.wrap(header).order(ByteOrder.LITTLE_ENDIAN)
-        buffer.put(MAGIC)
+        buffer.putShort(MAGIC)
         buffer.put(type)
         buffer.putInt(payloadLength)
         return header
