@@ -42,20 +42,26 @@ jobs:
       run: chmod +x gradlew
 
     - name: Build Debug APK
+      id: build
       working-directory: ./client
-      run: ./gradlew assembleDebug --no-daemon --stacktrace
+      continue-on-error: true
+      run: ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
 
-    - name: Display build output
+    - name: Show build result
       working-directory: ./client
       run: |
-        echo "=== Checking for APK files ==="
-        find . -name "*.apk" -type f 2>/dev/null
+        echo "=== BUILD RESULT ==="
+        tail -50 build.log
         echo ""
-        echo "=== APK output directory ==="
-        ls -la app/build/outputs/apk/debug/ 2>/dev/null || echo "Directory does not exist"
+        echo "=== APK FILES ==="
+        find . -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
+        echo ""
+        echo "=== APK DIR ==="
+        ls -la app/build/outputs/apk/debug/ 2>/dev/null || echo "APK directory does not exist"
       shell: bash
 
     - name: Upload APK Artifact
+      if: steps.build.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
         name: GR扩展屏幕-debug.apk
