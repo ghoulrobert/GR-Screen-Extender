@@ -14,9 +14,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     
-    env:
-      GRADLE_HOME: /opt/gradle
-    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -34,20 +31,26 @@ jobs:
       working-directory: ./client
       run: echo "sdk.dir=${ANDROID_HOME}" > local.properties
 
-    - name: Download and Setup Gradle
-      run: |
-        echo "Downloading Gradle 8.7..."
-        curl -L -o gradle.zip https://services.gradle.org/distributions/gradle-8.7-bin.zip || exit 1
-        unzip -q gradle.zip -d /opt/
-        rm gradle.zip
-        echo "/opt/gradle-8.7/bin" >> $GITHUB_PATH
-        export PATH="/opt/gradle-8.7/bin:$PATH"
-        gradle --version
-      shell: bash
+    - name: Setup Gradle
+      uses: gradle/gradle-build-action@v2
+      with:
+        gradle-version: 8.7
+        build-root-directory: client
+        gradle-home-cache-cleanup: true
+        cache-disabled: true
 
-    - name: Build Debug APK
+    - name: Build and capture output
       working-directory: ./client
-      run: gradle assembleDebug --no-daemon --stacktrace
+      run: |
+        gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee /tmp/build.log
+        echo "GRADLE_EXIT=$?" >> $GITHUB_ENV
+        echo ""
+        echo "=== LAST 100 LINES ==="
+        tail -100 /tmp/build.log
+        echo ""
+        echo "=== APK FILES ==="
+        find . -name "*.apk" 2>/dev/null || echo "No APK found"
+      shell: bash
 
     - name: Upload APK Artifact
       if: success()
