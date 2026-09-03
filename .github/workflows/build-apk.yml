@@ -43,25 +43,19 @@ jobs:
 
     - name: Build Debug APK
       working-directory: ./client
-      continue-on-error: true
-      run: ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee build-output.log
+      run: ./gradlew assembleDebug --no-daemon --stacktrace
 
     - name: Display build output
       working-directory: ./client
       run: |
-        echo "=== Last 100 lines of build log ==="
-        tail -100 build-output.log || echo "No build log found"
+        echo "=== Checking for APK files ==="
+        find . -name "*.apk" -type f 2>/dev/null
+        echo ""
+        echo "=== APK output directory ==="
+        ls -la app/build/outputs/apk/debug/ 2>/dev/null || echo "Directory does not exist"
       shell: bash
 
-    - name: Upload build log
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-log
-        path: client/build-output.log
-        retention-days: 7
-
     - name: Upload APK Artifact
-      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: GR扩展屏幕-debug.apk
