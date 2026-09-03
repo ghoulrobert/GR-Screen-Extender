@@ -39,19 +39,18 @@ jobs:
 
     - name: Build Debug APK
       working-directory: ./client
-      run: gradle assembleDebug --no-daemon --stacktrace
-
-    - name: Find APK
-      working-directory: ./client
       run: |
-        echo "=== Searching for APK files ==="
-        find . -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
+        gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee /tmp/build.log
+        EXIT_CODE=${PIPESTATUS[0]}
         echo ""
-        echo "=== APK output directory ==="
-        ls -la app/build/outputs/apk/debug/ 2>/dev/null || echo "Directory not found"
-      shell: bash
+        echo "=== EXIT CODE: $EXIT_CODE ==="
+        echo ""
+        echo "=== LAST 200 LINES ==="
+        tail -200 /tmp/build.log
+        exit $EXIT_CODE
 
     - name: Upload APK Artifact
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: ScreenExtender-debug.apk
