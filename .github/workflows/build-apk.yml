@@ -31,15 +31,13 @@ jobs:
       working-directory: ./client
       run: echo "sdk.dir=${ANDROID_HOME}" > local.properties
 
-    - name: Setup Gradle
-      uses: gradle/gradle-build-action@v2
-      with:
-        gradle-version: 8.7
-        build-root-directory: client
+    - name: Make gradlew executable
+      working-directory: ./client
+      run: chmod +x gradlew
 
     - name: Build Debug APK
       working-directory: ./client
-      run: gradle assembleDebug --no-daemon --stacktrace
+      run: ./gradlew assembleDebug --no-daemon --stacktrace
 
     - name: Upload APK Artifact
       if: success()
