@@ -37,17 +37,46 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
 
-    - name: Setup local.properties
+    - name: Setup and debug
       working-directory: ./client
-      run: echo "sdk.dir=${ANDROID_HOME}" > local.properties
+      run: |
+        echo "=== File listing ==="
+        ls -la
+        echo ""
+        echo "=== gradlew permissions ==="
+        ls -la gradlew
+        echo ""
+        echo "=== gradlew first line ==="
+        head -1 gradlew | cat -A
+        echo ""
+        echo "=== Java version ==="
+        java -version
+        echo ""
+        echo "=== JAVA_HOME ==="
+        echo $JAVA_HOME
+        echo ""
+        echo "=== ANDROID_HOME ==="
+        echo $ANDROID_HOME
+        echo ""
+        echo "=== local.properties ==="
+        echo "sdk.dir=${ANDROID_HOME}" > local.properties
+        cat local.properties
+      shell: bash
 
-    - name: Build Debug APK
+    - name: Test gradlew
       working-directory: ./client
       run: |
         chmod +x gradlew
-        ./gradlew assembleDebug --no-daemon --stacktrace
+        echo "=== Running gradlew --version ==="
+        ./gradlew --version 2>&1 || echo "EXIT CODE: $?"
+      shell: bash
+
+    - name: Build Debug APK
+      working-directory: ./client
+      run: ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
 
     - name: Upload APK Artifact
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: GR扩展屏幕-debug.apk
