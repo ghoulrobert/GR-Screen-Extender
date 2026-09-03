@@ -7,6 +7,10 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,15 +28,6 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    - name: Verify environment
-      run: |
-        echo "JAVA_HOME: $JAVA_HOME"
-        echo "ANDROID_HOME: $ANDROID_HOME"
-        echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
-        java -version
-        ls -la $ANDROID_HOME 2>/dev/null || echo "ANDROID_HOME not found"
-      shell: bash
-
     - name: Cache Gradle packages
       uses: actions/cache@v3
       with:
@@ -49,7 +44,15 @@ jobs:
 
     - name: Build Debug APK
       working-directory: ./client
-      run: ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee /dev/stderr
+      run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+    - name: Verify APK exists
+      working-directory: ./client
+      run: |
+        echo "=== Checking for APK ==="
+        find . -name "*.apk" 2>/dev/null || echo "No APK files found"
+        ls -la app/build/outputs/apk/debug/ 2>/dev/null || echo "Directory not found"
+      shell: bash
 
     - name: Upload APK Artifact
       if: success()
@@ -58,15 +61,3 @@ jobs:
         name: GR扩展屏幕-debug.apk
         path: client/app/build/outputs/apk/debug/app-debug.apk
         retention-days: 30
-
-    - name: Create Release
-      if: github.event_name == 'push' && success() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: v${{ github.run_number }}
-        name: GR扩展屏幕 v${{ github.run_number }}
-        files: client/app/build/outputs/apk/debug/app-debug.apk
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
