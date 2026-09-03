@@ -39,15 +39,7 @@ jobs:
 
     - name: Build Debug APK
       working-directory: ./client
-      run: |
-        gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee /tmp/build.log
-        EXIT_CODE=${PIPESTATUS[0]}
-        echo ""
-        echo "=== EXIT CODE: $EXIT_CODE ==="
-        echo ""
-        echo "=== LAST 200 LINES ==="
-        tail -200 /tmp/build.log
-        exit $EXIT_CODE
+      run: gradle assembleDebug --no-daemon --stacktrace 2>&1 | tail -150
 
     - name: Upload APK Artifact
       if: success()
