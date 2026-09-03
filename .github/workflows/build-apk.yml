@@ -27,6 +27,10 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
+    - name: Setup local.properties
+      working-directory: ./client
+      run: echo "sdk.dir=${ANDROID_HOME}" > local.properties
+
     - name: Cache Gradle packages
       uses: actions/cache@v3
       with:
@@ -37,35 +41,30 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-gradle-
 
-    - name: Setup local.properties
+    - name: Grant execute permission for gradlew
       working-directory: ./client
-      run: |
-        echo "sdk.dir=${ANDROID_HOME}" > local.properties
-        cat local.properties
-      shell: bash
+      run: chmod +x gradlew
+
+    - name: Download Gradle
+      working-directory: ./client
+      run: ./gradlew --version
 
     - name: Build Debug APK
       working-directory: ./client
-      run: |
-        chmod +x gradlew
-        ./gradlew assembleDebug --no-daemon --stacktrace
-      shell: bash
+      run: ./gradlew assembleDebug --no-daemon --stacktrace
 
     - name: Check APK file
       working-directory: ./client
       run: |
-        echo "=== Searching for APK files ==="
-        find . -name "*.apk" -type f 2>/dev/null
+        echo "=== APK files ==="
+        find . -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
         echo ""
-        echo "=== APK output directory ==="
+        echo "=== APK directory ==="
         ls -la app/build/outputs/apk/debug/ 2>/dev/null || echo "Directory not found"
-        echo ""
-        echo "=== Full path ==="
-        ls -la client/app/build/outputs/apk/debug/ 2>/dev/null || echo "client/ path not found"
-        ls -la app/build/outputs/apk/debug/ 2>/dev/null || echo "app/ path not found"
       shell: bash
 
     - name: Upload APK Artifact
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: ScreenExtender-debug.apk
